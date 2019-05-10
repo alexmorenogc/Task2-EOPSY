@@ -42,11 +42,19 @@ int main()
 	printf("All the Childs created.\n");
 
 	int i = 0;
+	/* 2.4 Call in a loop the wait() function, until receiving from the system
+  information that there are no more processes to be synchronized with the
+  parent one */
 	while(wait(&time) > 0) {
 			 if(WIFEXITED(time)) {
 						exit_codes[i++] =  WEXITSTATUS(time);
 			 }
 	}
+	/* Print a message that there are no more child processes. In this
+  loop do count child processes terminations and, at the very end of the
+  parent process, print a message with the number of just received child
+  processes exit codes. */
+	printf("Exit codes recived: %d\n", i);
 
 	printf("Execution completed\n");
 	return 0;
