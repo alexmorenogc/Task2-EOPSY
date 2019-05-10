@@ -2,73 +2,52 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
-#define NUM_CHILD 3
+#define NUM_CHILD 5
 
-// declaration
-void sighup();
-void sigint();
-void sigquit();
-
-void main()
+int main()
 {
 	int pid_p = getpid();
-	int pid;
-	int childs[NUM_CHILD];
+	pid_t pid;
+	int childs[NUM_CHILD], time, exit_codes[NUM_CHILD];
 
-	printf("Parent pid: %d\n", pid);
+	printf("Parent pid: %d\n", pid_p);
 	for (int i = 0; i < NUM_CHILD; i++){
 		if (getpid() == pid_p){
 			pid = fork();
 			childs[i] = pid;
-			sleep(1);
 		}
 
-		if (pid == 0) { //child
-			signal(SIGHUP, sighup);
-			signal(SIGINT, sigint);
-			signal(SIGQUIT, sigquit);
-			printf("Child process %d\n", getpid());
-			while(1);
-		} else if (pid < 0) {
+		if (pid < 0) { // Error
 			printf("Something is wrong\n");
-			for (int j = 0; j < i; j++){
-				printf("Parent: killing %d\n", childs[i]);
-				kill(childs[i], SIGQUIT);
-				sleep(1);
-			}
-		} else {
+			/* 2.2 send to all already created child processes SIGTERM signal */
 
+			/* 2.2 finish with the exit code 1 */
+			exit(1);
+		} else if (pid > 0) { // Parent
+			/* 2.1  Insert one second delays between consecutive fork() calls. */
 			sleep(1);
-			printf("Parent sending kills\n\n");
-			for (int i = 0; i < NUM_CHILD; i++){
-				printf("Parent: killing %d\n", childs[i]);
-				kill(childs[i], SIGQUIT);
-				sleep(1);
-			}
+		} else if (pid == 0) { // Child
+			/* 4.1  Print process identifier of the parent process */
+			printf("Child process %d with Parent %d\n", getpid(), pid_p);
+			/* 4.2 Sleep for 10 seconds */
+			sleep(10); // TODO: change to 10s
+			/* 4.3 Print a message about execution completion */
+			printf("Execution completed pid %d\n", getpid());
+			exit(100 + i);
 		}
 	}
-}
+	/* 2.3 Print a message about creation of all child processes. */
+	printf("All the Childs created.\n");
 
-// sighup() function definition
-void sighup()
+	int i = 0;
+	while(wait(&time) > 0) {
+			 if(WIFEXITED(time)) {
+						exit_codes[i++] =  WEXITSTATUS(time);
+			 }
+	}
 
-{
-	signal(SIGHUP, sighup); /* reset signal */
-	printf("CHILD: I have received a SIGHUP pid: %d\n", getpid());
-}
-
-// sigint() function definition
-void sigint()
-
-{
-	signal(SIGINT, sigint); /* reset signal */
-	printf("CHILD: I have received a SIGINT pid: %d\n", getpid());
-}
-
-// sigquit() function definition
-void sigquit()
-{
-	printf("My DADDY has Killed me!!! pid: %d\n", getpid());
-	exit(0);
+	printf("Execution completed\n");
+	return 0;
 }
