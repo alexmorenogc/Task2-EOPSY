@@ -54,7 +54,7 @@ int main()
   loop do count child processes terminations and, at the very end of the
   parent process, print a message with the number of just received child
   processes exit codes. */
-	printf("Exit codes recived: %d\n", i);
+	printf("Exit codes received: %d\n", i);
 
 	printf("Execution completed\n");
 	return 0;
